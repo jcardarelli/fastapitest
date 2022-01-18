@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+isort
+autoimport
+autopep8
+flake8
+pylint
+pydantic
