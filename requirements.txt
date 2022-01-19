@@ -6,3 +6,4 @@ autopep8
 flake8
 pylint
 pydantic
+psycopg2
