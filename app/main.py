@@ -105,7 +105,7 @@ def delete_post(post_id: int):
     # my_posts.pop(index)
     index = find_index_post(post_id)
 
-    if index == None:
+    if index is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"post with id {post_id} does not exist",
@@ -126,7 +126,7 @@ def update_post(post_id: int, post: Post):
     # find index in array that has the ID we're looking for
     index = find_index_post(post_id)
 
-    if index == None:
+    if index is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"post with id {post_id} does not exist",
