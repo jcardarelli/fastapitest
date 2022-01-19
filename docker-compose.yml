@@ -6,13 +6,22 @@ volumes:
 
 services:
   pgadmin:
+    container_name: pgadmin4
     image: dpage/pgadmin4
     ports:
-      - "9201:8080"
+      - "9201:80"
     environment:
       PGADMIN_DEFAULT_EMAIL: root@localhost.localdomain
       PGADMIN_DEFAULT_PASSWORD: secret2345
+
+      # Prevent use of sudo or use external mail server
       PGADMIN_DISABLE_POSTFIX: "true"
+
+      # To allow running in desktop mode (SERVER_MODE = False), a runtime
+      # application is provided to host and display the pgAdmin code (sometimes
+      # referred to as the application server). In this mode, each user runs
+      # their own instance of pgAdmin, thus no authentication or user management
+      # is required. https://www.pgadmin.org/faq/#2
       PGADMIN_CONFIG_SERVER_MODE: "False"
     volumes:
       - pgadmin-data:/var/lib/pgadmin
