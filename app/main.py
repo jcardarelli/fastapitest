@@ -46,29 +46,6 @@ while True:
         # wait before reconnecting
         time.sleep(2)
 
-my_posts = [
-    {"title": "post title 1", "content 1": "content of post 1", "post_id": 1},
-    {"title": "post title 2", "content 2": "content of post 2", "post_id": 2},
-]
-
-
-def find_post(post_id):
-    """
-    Retrieve data for a single post
-    """
-    for post in my_posts:
-        if post["post_id"] == post_id:
-            return post
-
-
-def find_index_post(post_id):
-    """
-    Find the index integer of a post in the array
-    """
-    for index, post in enumerate(my_posts):
-        if post["post_id"] == post_id:
-            return index
-
 
 @app.get("/")
 def root():
