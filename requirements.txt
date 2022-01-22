@@ -8,3 +8,5 @@ pylint
 pydantic
 psycopg2
 sqlalchemy
+pydantic[dotenv]
+email-validator
