@@ -10,3 +10,4 @@ psycopg2
 sqlalchemy
 pydantic[dotenv]
 email-validator
+passlib[bcrypt]

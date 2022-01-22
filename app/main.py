@@ -11,7 +11,7 @@ from fastapi import Depends, FastAPI, HTTPException, Response, status
 from psycopg2.extras import RealDictCursor
 from sqlalchemy.orm import Session
 
-from . import models, schemas
+from . import models, schemas, utils
 from .config import settings
 from .database import engine, get_db
 
@@ -166,6 +166,10 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     """
     New user registration
     """
+    # Hash the password
+    hashed_password = utils.hash(user.password)
+    user.password = hashed_password
+
     # Automatically unpack all dict fields
     new_user = models.User(**user.dict())
 
