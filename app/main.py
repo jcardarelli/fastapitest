@@ -83,11 +83,6 @@ def get_posts(db: Session = Depends(get_db)):
     """
     Get all posts
     """
-    # Using raw SQL and psycopg2
-    # cursor.execute("""SELECT * FROM posts """)
-    # posts = cursor.fetchall()
-
-    # Using sqlalchemy ORM
     posts = db.query(models.Post).all()
     return posts
 
@@ -99,21 +94,6 @@ def create_post(post: schemas.PostCreate, db: Session = Depends(get_db)):
     """
     Create a post
     """
-    # Using raw SQL and psycopg2
-    # cursor.execute(
-    #     """INSERT INTO posts(title, content, published)
-    #     VALUES (%s, %s, %s)
-    #     RETURNING * """,
-    #     # This field will sanitize the inputs to prevent SQL injection
-    #     (post.title, post.content, post.published),
-    # )
-
-    # # Get return value
-    # new_post = cursor.fetchone()
-
-    # # Commit the staged changes to the database
-    # conn.commit()
-
     # Automatically unpack all dict fields
     new_post = models.Post(**post.dict())
 
@@ -140,14 +120,6 @@ def get_post(
     """
     post = db.query(models.Post).filter(models.Post.id == post_id).first()
 
-    # Using raw SQL and psycopg2
-    # cursor.execute(
-    #     """SELECT * FROM posts
-    #     WHERE id = %s """,
-    #     (str(post_id)),
-    # )
-    # post = cursor.fetchone()
-
     if not post:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -163,16 +135,6 @@ def delete_post(post_id: int, db: Session = Depends(get_db)):
     Delete a single post
     """
     post = db.query(models.Post).filter(models.Post.id == post_id)
-
-    # Using raw SQL and psycopg2
-    # cursor.execute(
-    #     """DELETE FROM posts
-    #     WHERE id = %s
-    #     RETURNING *""",
-    #     (str(post_id)),
-    # )
-    # deleted_post = cursor.fetchone()
-    # conn.commit()
 
     if post.first() is None:
         raise HTTPException(
@@ -197,18 +159,6 @@ def update_post(
     """
     Update a post
     """
-
-    # Using raw SQL and psycopg2
-    # cursor.execute(
-    #     """UPDATE posts
-    #     SET title = %s, content = %s, published = %s
-    #     WHERE id = %s
-    #     RETURNING *""",
-    #     (post.title, post.content, post.published, str(post_id)),
-    # )
-    # updated_post = cursor.fetchone()
-    # conn.commit()
-
     # query to find post with specific id
     post_query = db.query(models.Post).filter(models.Post.id == post_id)
 
