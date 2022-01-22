@@ -2,28 +2,49 @@
 FastAPI testing
 """
 
-from random import randrange
-from typing import Optional
+import os
+import time
+from typing import List
 
-from fastapi import FastAPI, HTTPException, Response, status
-from pydantic import BaseModel
+import psycopg2
+from fastapi import Depends, FastAPI, HTTPException, Response, status
+from psycopg2.extras import RealDictCursor
+from sqlalchemy.orm import Session
+
+from . import models, schemas
+from .config import settings
+from .database import engine, get_db
+
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+# Get env vars
+path = os.getenv("POSTGRES_CONNECTION")
+print(path)
 
-class Post(BaseModel):
-    """
-    Valpost_idate schema with pydantic
-    """
+# Setup database connection
+while True:
+    try:
+        conn = psycopg2.connect(
+            host=settings.database_hostname,
+            database=settings.database_name,
+            user=settings.database_username,
+            password=settings.database_password,
+            # Sets up python dict with column name and value
+            cursor_factory=RealDictCursor,
+        )
+        cursor = conn.cursor()
+        print("Database connection was successful")
 
-    # Required inputs
-    title: str
-    content: str
+        # break out of while loop if true
+        break
+    except Exception as error:
+        print("Database connection failed")
+        print("Error: ", error)
 
-    # Optional inputs
-    published: bool = True
-    rating: Optional[int] = None
-
+        # wait before reconnecting
+        time.sleep(2)
 
 my_posts = [
     {"title": "post title 1", "content 1": "content of post 1", "post_id": 1},
@@ -57,88 +78,177 @@ def root():
     return {"message": "welcome to my api!!"}
 
 
-@app.get("/posts")
-def get_posts():
+@app.get("/posts", response_model=List[schemas.PostResponse])
+def get_posts(db: Session = Depends(get_db)):
     """
     Get all posts
     """
-    return {"data": my_posts}
+    # Using raw SQL and psycopg2
+    # cursor.execute("""SELECT * FROM posts """)
+    # posts = cursor.fetchall()
+
+    # Using sqlalchemy ORM
+    posts = db.query(models.Post).all()
+    return posts
 
 
-@app.post("/posts", status_code=status.HTTP_201_CREATED)
-def create_post(post: Post):
+@app.post(
+    "/posts", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse
+)
+def create_post(post: schemas.PostCreate, db: Session = Depends(get_db)):
     """
     Create a post
     """
-    post_dict = post.dict()
-    post_dict["post_id"] = randrange(0, 10000000)
+    # Using raw SQL and psycopg2
+    # cursor.execute(
+    #     """INSERT INTO posts(title, content, published)
+    #     VALUES (%s, %s, %s)
+    #     RETURNING * """,
+    #     # This field will sanitize the inputs to prevent SQL injection
+    #     (post.title, post.content, post.published),
+    # )
 
-    my_posts.append(post_dict)
-    return {"data": post_dict}
+    # # Get return value
+    # new_post = cursor.fetchone()
+
+    # # Commit the staged changes to the database
+    # conn.commit()
+
+    # Automatically unpack all dict fields
+    new_post = models.Post(**post.dict())
+
+    # Add new post to the database
+    db.add(new_post)
+
+    # Commit new row to the database
+    db.commit()
+
+    # Retrive new post and store in new_post variable
+    db.refresh(new_post)
+
+    return new_post
 
 
 # path parameter {post_id}
 @app.get("/posts/{post_id}")
 # using '(post_id: int) will tell fastapi to auto-convert to an integer
-def get_post(post_id: int):
+def get_post(
+    post_id: int, db: Session = Depends(get_db), response_model=schemas.PostResponse
+):
     """
     Get a single post
     """
-    post = find_post(post_id)
+    post = db.query(models.Post).filter(models.Post.id == post_id).first()
+
+    # Using raw SQL and psycopg2
+    # cursor.execute(
+    #     """SELECT * FROM posts
+    #     WHERE id = %s """,
+    #     (str(post_id)),
+    # )
+    # post = cursor.fetchone()
+
     if not post:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"post with id {post_id} was not found",
         )
-        # response.status_code = status.HTTP_404_NOT_FOUND
-        # return {"message": f"post with id {post_id} was not found"}
 
     return {"post_detail": post}
 
 
 @app.delete("/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(post_id: int):
+def delete_post(post_id: int, db: Session = Depends(get_db)):
     """
     Delete a single post
     """
-    # find index in array that has the ID we're looking for
-    # my_posts.pop(index)
-    index = find_index_post(post_id)
+    post = db.query(models.Post).filter(models.Post.id == post_id)
 
-    if index is None:
+    # Using raw SQL and psycopg2
+    # cursor.execute(
+    #     """DELETE FROM posts
+    #     WHERE id = %s
+    #     RETURNING *""",
+    #     (str(post_id)),
+    # )
+    # deleted_post = cursor.fetchone()
+    # conn.commit()
+
+    if post.first() is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"post with id {post_id} does not exist",
         )
 
-    # Remove from array
-    my_posts.pop(index)
+    post.delete(synchronize_session=False)
+    db.commit()
 
     # Don't send any data back when deleting
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @app.put("/posts/{post_id}")
-def update_post(post_id: int, post: Post):
+def update_post(
+    post_id: int,
+    updated_post: schemas.PostCreate,
+    db: Session = Depends(get_db),
+    response_model=schemas.PostResponse,
+):
     """
     Update a post
     """
-    # find index in array that has the ID we're looking for
-    index = find_index_post(post_id)
 
-    if index is None:
+    # Using raw SQL and psycopg2
+    # cursor.execute(
+    #     """UPDATE posts
+    #     SET title = %s, content = %s, published = %s
+    #     WHERE id = %s
+    #     RETURNING *""",
+    #     (post.title, post.content, post.published, str(post_id)),
+    # )
+    # updated_post = cursor.fetchone()
+    # conn.commit()
+
+    # query to find post with specific id
+    post_query = db.query(models.Post).filter(models.Post.id == post_id)
+
+    # grab the post with that id
+    post = post_query.first()
+
+    # return 404 if it doesn't exist
+    if post is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"post with id {post_id} does not exist",
         )
 
-    # Convert input data into a dictionary
-    post_dict = post.dict()
+    # if it does exist, chain the update method to the same query method
+    post_query.update(updated_post.dict(), synchronize_session=False)
 
-    # Add id to the dict
-    post_dict["post_id"] = post_id
+    # commit changes to database
+    db.commit()
 
-    # Update this index
-    my_posts[index] = post_dict
+    # send updated post to user
+    return post_query.first()
 
-    return {"data": post_dict}
+
+@app.post(
+    "/users", status_code=status.HTTP_201_CREATED, response_model=schemas.UserResponse
+)
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    """
+    New user registration
+    """
+    # Automatically unpack all dict fields
+    new_user = models.User(**user.dict())
+
+    # Add new post to the database
+    db.add(new_user)
+
+    # Commit new row to the database
+    db.commit()
+
+    # Retrive new post and store in new_user variable
+    db.refresh(new_user)
+
+    return new_user
