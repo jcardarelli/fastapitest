@@ -9,8 +9,8 @@ services:
   postgres:
     image: postgres:14.1-alpine
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=secret2345
+      - POSTGRES_USER=${DATABASE_USERNAME}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
     logging:
       options:
         max-size: 10m
@@ -28,8 +28,8 @@ services:
     ports:
       - "9201:80"
     environment:
-      PGADMIN_DEFAULT_EMAIL: root@localhost.localdomain
-      PGADMIN_DEFAULT_PASSWORD: secret2345
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
 
       # Prevent use of sudo or use external mail server
       PGADMIN_DISABLE_POSTFIX: "true"
