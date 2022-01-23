@@ -4,16 +4,15 @@ FastAPI testing
 
 import os
 import time
-from typing import List
 
 import psycopg2
-from fastapi import Depends, FastAPI, HTTPException, Response, status
+from fastapi import FastAPI
 from psycopg2.extras import RealDictCursor
-from sqlalchemy.orm import Session
 
 from . import models, schemas, utils
 from .config import settings
-from .database import engine, get_db
+from .database import engine
+from .routers import post, user
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -47,151 +46,14 @@ while True:
         time.sleep(2)
 
 
+# Include router objects from routers directory
+app.include_router(post.router)
+app.include_router(user.router)
+
+
 @app.get("/")
 def root():
     """
     Root path
     """
     return {"message": "welcome to my api!!"}
-
-
-@app.get("/posts", response_model=List[schemas.PostResponse])
-def get_posts(db: Session = Depends(get_db)):
-    """
-    Get all posts
-    """
-    posts = db.query(models.Post).all()
-    return posts
-
-
-@app.post(
-    "/posts", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse
-)
-def create_post(post: schemas.PostCreate, db: Session = Depends(get_db)):
-    """
-    Create a post
-    """
-    # Automatically unpack all dict fields
-    new_post = models.Post(**post.dict())
-
-    # Add new post to the database
-    db.add(new_post)
-
-    # Commit new row to the database
-    db.commit()
-
-    # Retrive new post and store in new_post variable
-    db.refresh(new_post)
-
-    return new_post
-
-
-# path parameter {post_id}
-@app.get("/posts/{post_id}")
-# using '(post_id: int) will tell fastapi to auto-convert to an integer
-def get_post(
-    post_id: int, db: Session = Depends(get_db), response_model=schemas.PostResponse
-):
-    """
-    Get a single post
-    """
-    post = db.query(models.Post).filter(models.Post.id == post_id).first()
-
-    if not post:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"post with id {post_id} was not found",
-        )
-
-    return {"post_detail": post}
-
-
-@app.delete("/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(post_id: int, db: Session = Depends(get_db)):
-    """
-    Delete a single post
-    """
-    post = db.query(models.Post).filter(models.Post.id == post_id)
-
-    if post.first() is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"post with id {post_id} does not exist",
-        )
-
-    post.delete(synchronize_session=False)
-    db.commit()
-
-    # Don't send any data back when deleting
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
-
-
-@app.put("/posts/{post_id}")
-def update_post(
-    post_id: int,
-    updated_post: schemas.PostCreate,
-    db: Session = Depends(get_db),
-    response_model=schemas.PostResponse,
-):
-    """
-    Update a post
-    """
-    # query to find post with specific id
-    post_query = db.query(models.Post).filter(models.Post.id == post_id)
-
-    # grab the post with that id
-    post = post_query.first()
-
-    # return 404 if it doesn't exist
-    if post is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"post with id {post_id} does not exist",
-        )
-
-    # if it does exist, chain the update method to the same query method
-    post_query.update(updated_post.dict(), synchronize_session=False)
-
-    # commit changes to database
-    db.commit()
-
-    # send updated post to user
-    return post_query.first()
-
-
-@app.post(
-    "/users", status_code=status.HTTP_201_CREATED, response_model=schemas.UserResponse
-)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    """
-    New user registration
-    """
-    # Hash the password
-    hashed_password = utils.hash(user.password)
-    user.password = hashed_password
-
-    # Automatically unpack all dict fields
-    new_user = models.User(**user.dict())
-
-    # Add new post to the database
-    db.add(new_user)
-
-    # Commit new row to the database
-    db.commit()
-
-    # Retrive new post and store in new_user variable
-    db.refresh(new_user)
-
-    return new_user
-
-
-@app.get("/users/{id}", response_model=schemas.UserResponse)
-def get_user(id: int, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.id == id).first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"User with id: {id} does not exist",
-        )
-
-    return user
