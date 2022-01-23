@@ -45,11 +45,9 @@ def create_post(post: schemas.PostCreate, db: Session = Depends(get_db)):
 
 
 # path parameter {post_id}
-@router.get("/{post_id}")
+@router.get("/{post_id}", response_model=schemas.PostResponse)
 # using '(post_id: int) will tell fastapi to auto-convert to an integer
-def get_post(
-    post_id: int, db: Session = Depends(get_db), response_model=schemas.PostResponse
-):
+def get_post(post_id: int, db: Session = Depends(get_db)):
     """
     Get a single post
     """
@@ -84,12 +82,11 @@ def delete_post(post_id: int, db: Session = Depends(get_db)):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.put("/{post_id}")
+@router.put("/{post_id}", response_model=schemas.PostResponse)
 def update_post(
     post_id: int,
     updated_post: schemas.PostCreate,
     db: Session = Depends(get_db),
-    response_model=schemas.PostResponse,
 ):
     """
     Update a post
