@@ -10,10 +10,10 @@ from sqlalchemy.orm import Session
 from .. import models, schemas
 from ..database import get_db
 
-router = APIRouter()
+router = APIRouter(prefix="/posts")
 
 
-@router.get("/posts", response_model=List[schemas.PostResponse])
+@router.get("/", response_model=List[schemas.PostResponse])
 def get_posts(db: Session = Depends(get_db)):
     """
     Get all posts
@@ -23,7 +23,7 @@ def get_posts(db: Session = Depends(get_db)):
 
 
 @router.post(
-    "/posts", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse
+    "/", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse
 )
 def create_post(post: schemas.PostCreate, db: Session = Depends(get_db)):
     """
@@ -45,7 +45,7 @@ def create_post(post: schemas.PostCreate, db: Session = Depends(get_db)):
 
 
 # path parameter {post_id}
-@router.get("/posts/{post_id}")
+@router.get("/{post_id}")
 # using '(post_id: int) will tell fastapi to auto-convert to an integer
 def get_post(
     post_id: int, db: Session = Depends(get_db), response_model=schemas.PostResponse
@@ -64,7 +64,7 @@ def get_post(
     return {"post_detail": post}
 
 
-@router.delete("/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(post_id: int, db: Session = Depends(get_db)):
     """
     Delete a single post
@@ -84,7 +84,7 @@ def delete_post(post_id: int, db: Session = Depends(get_db)):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.put("/posts/{post_id}")
+@router.put("/{post_id}")
 def update_post(
     post_id: int,
     updated_post: schemas.PostCreate,
