@@ -64,3 +64,12 @@ class UserResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class UserLogin(BaseModel):
+    """
+    docstring for UserLogin class
+    """
+
+    email: EmailStr
+    password: str

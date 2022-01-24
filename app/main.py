@@ -12,7 +12,7 @@ from psycopg2.extras import RealDictCursor
 from . import models, schemas, utils
 from .config import settings
 from .database import engine
-from .routers import post, user
+from .routers import auth, post, user
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -49,6 +49,7 @@ while True:
 # Include router objects from routers directory
 app.include_router(post.router)
 app.include_router(user.router)
+app.include_router(auth.router)
 
 
 @app.get("/")
