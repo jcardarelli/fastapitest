@@ -7,7 +7,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
-from .. import models, schemas
+from .. import models, oauth2, schemas
 from ..database import get_db
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
@@ -17,6 +17,7 @@ router = APIRouter(prefix="/posts", tags=["Posts"])
 def get_posts(db: Session = Depends(get_db)):
     """
     Get all posts
+    User must be authenticated via the /login endpoint
     """
     posts = db.query(models.Post).all()
     return posts
@@ -25,9 +26,14 @@ def get_posts(db: Session = Depends(get_db)):
 @router.post(
     "/", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse
 )
-def create_post(post: schemas.PostCreate, db: Session = Depends(get_db)):
+def create_post(
+    post: schemas.PostCreate,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(oauth2.get_current_user),
+):
     """
     Create a post
+    User must be authenticated via the /login endpoint
     """
     # Automatically unpack all dict fields
     new_post = models.Post(**post.dict())
@@ -47,9 +53,14 @@ def create_post(post: schemas.PostCreate, db: Session = Depends(get_db)):
 # path parameter {post_id}
 @router.get("/{post_id}", response_model=schemas.PostResponse)
 # using '(post_id: int) will tell fastapi to auto-convert to an integer
-def get_post(post_id: int, db: Session = Depends(get_db)):
+def get_post(
+    post_id: int,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(oauth2.get_current_user),
+):
     """
     Get a single post
+    User must be authenticated via the /login endpoint
     """
     post = db.query(models.Post).filter(models.Post.id == post_id).first()
 
@@ -59,13 +70,18 @@ def get_post(post_id: int, db: Session = Depends(get_db)):
             detail=f"post with id {post_id} was not found",
         )
 
-    return {"post_detail": post}
+    return post
 
 
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(post_id: int, db: Session = Depends(get_db)):
+def delete_post(
+    post_id: int,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(oauth2.get_current_user),
+):
     """
     Delete a single post
+    User must be authenticated via the /login endpoint
     """
     post = db.query(models.Post).filter(models.Post.id == post_id)
 
@@ -87,9 +103,11 @@ def update_post(
     post_id: int,
     updated_post: schemas.PostCreate,
     db: Session = Depends(get_db),
+    user_id: int = Depends(oauth2.get_current_user),
 ):
     """
     Update a post
+    User must be authenticated via the /login endpoint
     """
     # query to find post with specific id
     post_query = db.query(models.Post).filter(models.Post.id == post_id)
