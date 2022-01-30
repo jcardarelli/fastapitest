@@ -14,7 +14,9 @@ router = APIRouter(prefix="/posts", tags=["Posts"])
 
 
 @router.get("/", response_model=List[schemas.PostResponse])
-def get_posts(db: Session = Depends(get_db)):
+def get_posts(
+    db: Session = Depends(get_db), user_id: int = Depends(oauth2.get_current_user)
+):
     """
     Get all posts
     User must be authenticated via the /login endpoint
