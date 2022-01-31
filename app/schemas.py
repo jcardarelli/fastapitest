@@ -30,22 +30,6 @@ class PostCreate(PostBase):
     pass
 
 
-class PostResponse(PostBase):
-    """
-    Allowed fields in the response to the user
-    """
-
-    id: int
-    created_at: datetime
-    owner_id: int
-
-    # Tell the pydantic model to read the data even if it is not a dict
-    # Get value from dict, e.g. id = data["id"]
-    # Get value from attribute, e.g. id = data.id
-    class Config:
-        orm_mode = True
-
-
 class UserCreate(BaseModel):
     """
     Fields required to create a new user account
@@ -64,6 +48,23 @@ class UserResponse(BaseModel):
     email: EmailStr
     created_at: datetime
 
+    class Config:
+        orm_mode = True
+
+
+class PostResponse(PostBase):
+    """
+    Allowed fields in the response to the user
+    """
+
+    id: int
+    created_at: datetime
+    owner_id: int
+    owner: UserResponse
+
+    # Tell the pydantic model to read the data even if it is not a dict
+    # Get value from dict, e.g. id = data["id"]
+    # Get value from attribute, e.g. id = data.id
     class Config:
         orm_mode = True
 
