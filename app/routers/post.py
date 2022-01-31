@@ -37,8 +37,9 @@ def create_post(
     Create a post
     User must be authenticated via the /login endpoint
     """
+    print(current_user.id)
     # Automatically unpack all dict fields
-    new_post = models.Post(**post.dict())
+    new_post = models.Post(owner_id=current_user.id, **post.dict())
 
     # Add new post to the database
     db.add(new_post)
@@ -85,15 +86,26 @@ def delete_post(
     Delete a single post
     User must be authenticated via the /login endpoint
     """
-    post = db.query(models.Post).filter(models.Post.id == post_id)
+    # define the query
+    post_query = db.query(models.Post).filter(models.Post.id == post_id)
 
-    if post.first() is None:
+    # check to see if the post is available
+    post = post_query.first()
+
+    if post is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"post with id {post_id} does not exist",
         )
 
-    post.delete(synchronize_session=False)
+    # check to see if logged in user owns the post
+    if post.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User is not authorized to perform this action",
+        )
+
+    post_query.delete(synchronize_session=False)
     db.commit()
 
     # Don't send any data back when deleting
@@ -122,6 +134,12 @@ def update_post(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"post with id {post_id} does not exist",
+        )
+
+    if post.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User is not authorized to perform this action",
         )
 
     # if it does exist, chain the update method to the same query method

@@ -37,6 +37,7 @@ class PostResponse(PostBase):
 
     id: int
     created_at: datetime
+    owner_id: int
 
     # Tell the pydantic model to read the data even if it is not a dict
     # Get value from dict, e.g. id = data["id"]
