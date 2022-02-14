@@ -1,5 +1,5 @@
 fastapi==0.73.0
-uvicorn==0.17.0
+uvicorn==0.17.4
 isort==5.10.1
 autoimport==1.0.2
 autopep8==1.6.0
