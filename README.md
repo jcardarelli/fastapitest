@@ -33,3 +33,17 @@ while True:
         # wait before reconnecting
         time.sleep(2)
 ```
+
+## Notes on SQL JOINS
+
+This query will join the posts and votes table so that:
+* all rows from the posts table are available
+* a new vote column with vote count for each post is available
+
+(Final command at ~10:15)
+```
+select posts.*, COUNT(votes.post_id) as votes
+from posts LEFT JOIN votes ON posts.id = votes.post_id
+where posts.id = 12
+group by posts.id;
+```
