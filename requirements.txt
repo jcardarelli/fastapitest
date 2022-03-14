@@ -1,7 +1,7 @@
 fastapi==0.73.0
 uvicorn==0.17.0
 isort==5.10.1
-autoimport==1.0.2
+autoimport==1.2.2
 autopep8==1.6.0
 flake8==4.0.1
 pylint==2.12.2
