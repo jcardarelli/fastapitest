@@ -6,17 +6,19 @@ from sqlalchemy import pool
 from alembic import context
 
 from app.models import Base
+from app.config import settings
+
+SQL_ALCHEMY_DATABASE_URL = (
+    f"postgresql://"
+    f"{settings.database_username}:{settings.database_password}"
+    f"@{settings.database_hostname}:{settings.database_port}"
+    f"/{settings.database_name}"
+)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-config.set_main_option(
-    "sqlalchemy.url",
-    """postgresql://postgresql+psycopg2://
-       {settings.database_username}:{settings.database_password}
-       @{settings.database_hostname}:{settings.database_port}
-       /{settings.database_name}""",
-)
+config.set_main_option("sqlalchemy.url", SQL_ALCHEMY_DATABASE_URL)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
