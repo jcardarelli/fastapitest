@@ -12,7 +12,8 @@ RUN \
   apk add --no-cache postgresql-libs && \
   apk add --no-cache --virtual .build-deps gcc musl-dev postgresql-dev && \
   pip install --no-cache-dir -r requirements.txt && \
-  apk --purge del .build-deps
+  apk --purge del .build-deps && \
+  rm ./requirements.txt
 
 # Copy all application files to container
 COPY app/ /usr/src/app
