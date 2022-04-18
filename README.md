@@ -47,3 +47,8 @@ from posts LEFT JOIN votes ON posts.id = votes.post_id
 where posts.id = 12
 group by posts.id;
 ```
+
+## Scanning dockerfiles with checkov
+```
+docker run -v $PWD:/docker --rm bridgecrew/checkov --framework dockerfile -d /docker
+```
