@@ -17,6 +17,9 @@ services:
         max-file: "3"
     ports:
       - "5438:5432"
+    user: 1000:1000
+    env_file:
+      - app/.env
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
       # copy the sql script to create tables
@@ -40,5 +43,16 @@ services:
       # their own instance of pgAdmin, thus no authentication or user management
       # is required. https://www.pgadmin.org/faq/#2
       PGADMIN_CONFIG_SERVER_MODE: "False"
+    env_file:
+      - app/.env
     volumes:
       - pgadmin-data:/var/lib/pgadmin
+
+  fastapi:
+    build: .
+    env_file:
+      - app/.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
