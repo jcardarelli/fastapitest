@@ -49,7 +49,7 @@ services:
       - pgadmin-data:/var/lib/pgadmin
 
   fastapi:
-    image: fastapitest:latest
+    build: .
     env_file:
       - app/.env
     ports:
