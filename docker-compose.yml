@@ -41,6 +41,8 @@ services:
       # their own instance of pgAdmin, thus no authentication or user management
       # is required. https://www.pgadmin.org/faq/#2
       PGADMIN_CONFIG_SERVER_MODE: "False"
+    env_file:
+      - app/.env
     volumes:
       - pgadmin-data:/var/lib/pgadmin
 
