@@ -43,3 +43,12 @@ services:
       PGADMIN_CONFIG_SERVER_MODE: "False"
     volumes:
       - pgadmin-data:/var/lib/pgadmin
+
+  fastapi:
+    image: fastapitest:latest
+    env_file:
+      - app/.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
