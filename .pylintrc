@@ -5,3 +5,7 @@
 
 [MASTER]
 extension-pkg-whitelist=pydantic
+
+# Fix linting warning: no-member: Module 'alembic.op' has no 'create_table'
+# member
+disable=no-member
