@@ -16,6 +16,8 @@ RUN \
 
 # Copy all application files to container
 COPY app/ /usr/src/app
+COPY alembic/ /usr/src/alembic
+COPY alembic.ini /usr/src/alembic.ini
 
 # Set env vars and run app with uvicorn
 ENV POSTGRES_CONNECTION=.env
