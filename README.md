@@ -52,3 +52,12 @@ group by posts.id;
 ```
 docker run -v $PWD:/docker --rm bridgecrew/checkov --framework dockerfile -d /docker
 ```
+
+## Testing with pytest
+Options:
+* `-v` to show filenames in verbose mode
+* `-s` to show output from `print()` statements in the test functions
+
+Fixtures:
+* A fixture is a function that runs before a specific test case
+* Fixtures can be used for common code in multiple test cases
