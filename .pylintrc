@@ -9,3 +9,9 @@ extension-pkg-whitelist=pydantic
 # Fix linting warning: no-member: Module 'alembic.op' has no 'create_table'
 # member
 disable=no-member
+
+# Fixes: wrong-import-order: third party import "from fastapi.testclient import
+# TestClient" should be placed before "from app.main import app"
+# https://stackoverflow.com/a/52468110/647606
+[IMPORTS]
+known-third-party=app
