@@ -1,0 +1,19 @@
+FROM python:3.10-alpine
+
+WORKDIR /app/test
+
+COPY app/ /app/
+COPY app/.env /app/
+COPY test/ /app/
+COPY requirements.txt /app/
+COPY docker-pytest.sh /app/
+
+RUN \
+  apk add --no-cache postgresql-libs && \
+  apk add --no-cache --virtual .build-deps gcc musl-dev postgresql-dev && \
+  pip install --no-cache-dir -r /app/requirements.txt && \
+  apk --purge del .build-deps && \
+  rm /app/requirements.txt
+
+# ENTRYPOINT ["sh", "/app/docker-pytest.sh"]
+ENTRYPOINT ["pytest"]
