@@ -5,12 +5,17 @@ volumes:
   pgadmin-data:
   postgres-data:
 
+networks:
+  fastapi:
+
 services:
   postgres:
     image: postgres:14.1-alpine
     environment:
       - POSTGRES_USER=${DATABASE_USERNAME}
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+    networks:
+      - fastapi
     logging:
       options:
         max-size: 10m
@@ -43,6 +48,8 @@ services:
       # their own instance of pgAdmin, thus no authentication or user management
       # is required. https://www.pgadmin.org/faq/#2
       PGADMIN_CONFIG_SERVER_MODE: "False"
+    networks:
+      - fastapi
     env_file:
       - app/.env
     volumes:
@@ -54,5 +61,7 @@ services:
       - app/.env
     ports:
       - "8000:8000"
+    networks:
+      - fastapi
     depends_on:
       - postgres
