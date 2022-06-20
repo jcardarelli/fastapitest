@@ -1,6 +1,6 @@
 __pycache__
 .venv/
-.env
+.env*
 
 # postgres data directories
 .postgres-data/
