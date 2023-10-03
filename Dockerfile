@@ -1,4 +1,4 @@
-FROM python:3.10-alpine
+FROM python:3.12-alpine
 
 # Run all commands from this directory
 WORKDIR /usr/src
